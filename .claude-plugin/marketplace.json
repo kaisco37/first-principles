@@ -1,0 +1,16 @@
+{
+  "name": "first-principles",
+  "owner": {
+    "name": "kaisco37"
+  },
+  "metadata": {
+    "description": "第一原理まで遡って考えるための日本語の思考スキル"
+  },
+  "plugins": [
+    {
+      "name": "first-principles",
+      "source": "./",
+      "description": "要件と資産の不足をヒートマップで見せ、うまくいかない理由を前提から疑う「なぜ」の木で第一原理まで遡り、事実だけからやり方を組み直す"
+    }
+  ]
+}

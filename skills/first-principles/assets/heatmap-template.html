@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第一原理思考のヒートマップ</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --ink: #1f2328;
+    --muted: #59636e;
+    --line: #d1d9e0;
+    --soft: #f6f8fa;
+    --accent: #b42318;
+    --fact: #1a7f37;
+    --report: #0969da;
+    --guess: #9a6700;
+    --custom: #8250df;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Hiragino Sans", "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
+    line-height: 1.7;
+    font-size: 15px;
+  }
+  main { max-width: 1080px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  h2 { font-size: 18px; margin: 40px 0 12px; padding-bottom: 6px; border-bottom: 2px solid var(--ink); }
+  .meta { color: var(--muted); font-size: 13px; }
+  .subject { margin: 12px 0 0; padding: 10px 14px; background: var(--soft); border-left: 4px solid var(--accent); }
+  .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  .scroll > table:not(.heat) { min-width: 640px; }
+  th, td { border: 1px solid var(--line); padding: 6px 8px; vertical-align: top; text-align: left; }
+  th { background: var(--soft); font-weight: 600; white-space: nowrap; }
+  table.heat th, table.heat td { text-align: center; vertical-align: middle; }
+  table.heat th.req { text-align: left; white-space: normal; min-width: 180px; }
+  table.heat td.cell { min-width: 64px; height: 52px; cursor: pointer; font-weight: 700; font-size: 16px; position: relative; }
+  table.heat td.cell:focus { outline: 3px solid var(--ink); outline-offset: -3px; }
+  table.heat td.cell.sel { outline: 3px solid var(--ink); outline-offset: -3px; }
+  table.heat td.na { color: var(--muted); background: #fafafa; font-weight: 400; }
+  table.heat td.none { background: repeating-linear-gradient(45deg, #f0f0f0 0 6px, #ffffff 6px 12px); color: var(--muted); font-weight: 400; }
+  .dug::after { content: "●"; position: absolute; top: 2px; right: 4px; font-size: 10px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 10px 0; font-size: 13px; color: var(--muted); }
+  .swatches { display: flex; }
+  .swatches span { width: 22px; height: 14px; display: inline-block; border: 1px solid var(--line); }
+  .panel { margin-top: 16px; border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; background: #fff; }
+  .panel h3 { margin: 0 0 8px; font-size: 16px; }
+  .panel .empty { color: var(--muted); }
+  .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 0 6px; border-radius: 4px; border: 1px solid currentColor; margin-left: 6px; white-space: nowrap; vertical-align: 1px; }
+  .tag.事実 { color: var(--fact); }
+  .tag.申告 { color: var(--report); }
+  .tag.推測 { color: var(--guess); }
+  .tag.慣習 { color: var(--custom); }
+  .stop { display: inline-block; font-size: 11px; font-weight: 700; padding: 0 6px; border-radius: 4px; background: var(--ink); color: #fff; margin-left: 6px; }
+  .stop.選択 { background: var(--accent); }
+  ul.tree, ul.tree ul { list-style: none; margin: 0; padding-left: 20px; }
+  ul.tree { padding-left: 0; }
+  ul.tree li { position: relative; padding: 4px 0 4px 16px; }
+  ul.tree li::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; border-left: 1px solid var(--line); }
+  ul.tree li::after { content: ""; position: absolute; left: 0; top: 16px; width: 12px; border-top: 1px solid var(--line); }
+  .iffalse { display: block; color: var(--muted); font-size: 13px; }
+  .root { font-weight: 700; margin-bottom: 4px; }
+  .exp dt { font-weight: 700; margin-top: 8px; }
+  .exp dd { margin: 0 0 0 1em; }
+  @media print {
+    main { max-width: none; padding: 0; }
+    .panel { break-inside: avoid; }
+    h2 { break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="title"></h1>
+  <div class="meta" id="date"></div>
+  <p class="subject" id="subject"></p>
+
+  <h2>ヒートマップ</h2>
+  <div class="legend">
+    <span>色＝優先度（重み ×（3 − 点数））</span>
+    <span class="swatches" id="swatches"></span>
+    <span>0 → 9</span>
+    <span>「—」＝関係なし</span>
+    <span>斜線＝未評価</span>
+    <span>● ＝なぜの木あり</span>
+  </div>
+  <div class="scroll"><table class="heat" id="heat"></table></div>
+  <div class="panel" id="panel"><p class="empty">マスを押すと、根拠と「なぜ」の木が出ます。</p></div>
+
+  <h2>要件</h2>
+  <div class="scroll"><table id="reqs"></table></div>
+
+  <h2>資産</h2>
+  <div class="scroll"><table id="assets"></table></div>
+
+  <h2>前提の台帳</h2>
+  <div class="scroll"><table id="assumptions"></table></div>
+
+  <h2>再構築案</h2>
+  <div class="scroll"><table id="options"></table></div>
+
+  <h2>一番小さい検証</h2>
+  <dl class="exp" id="experiment"></dl>
+</main>
+
+<!-- データは first-principles スキルが差し替える。形は references/heatmap-scoring.md を見る -->
+<script id="data" type="application/json">
+{
+  "title": "題名",
+  "date": "YYYY-MM-DD",
+  "subject": "〈何が〉〈どうなっていない〉理由",
+  "columns": ["人", "物", "金", "情報", "時間", "技術", "関係"],
+  "requirements": [],
+  "assets": [],
+  "cells": [],
+  "trees": [],
+  "assumptions": [],
+  "options": [],
+  "experiment": null
+}
+</script>
+
+<script>
+(function () {
+  "use strict";
+  var data;
+  try {
+    data = JSON.parse(document.getElementById("data").textContent);
+  } catch (e) {
+    document.querySelector("main").insertAdjacentHTML("afterbegin", "<p style='color:#b42318'>データの JSON を読めませんでした。書式を確かめてください。</p>");
+    return;
+  }
+
+  // 優先度 0〜9 を白から赤の色に変える
+  var scale = ["#ffffff", "#fff1ef", "#ffe0db", "#fdc9c0", "#fbab9e", "#f4887a", "#e8604f", "#d63e2d", "#bd2a1c", "#9b1c12"];
+
+  function el(tag, attrs, text) {
+    var n = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) { n.setAttribute(k, attrs[k]); });
+    if (text !== undefined && text !== null) n.textContent = String(text);
+    return n;
+  }
+  function tag(name) {
+    if (!name) return document.createTextNode("");
+    return el("span", { "class": "tag " + name }, name);
+  }
+  function stop(name) {
+    return el("span", { "class": "stop " + name }, "止める：" + name);
+  }
+  function text(id, value) { document.getElementById(id).textContent = value || ""; }
+  function list(value) { return Array.isArray(value) ? value : []; }
+
+  text("title", data.title);
+  text("date", data.date ? "作成日 " + data.date : "");
+  text("subject", data.subject);
+  document.title = data.title || document.title;
+
+  var sw = document.getElementById("swatches");
+  scale.forEach(function (c) { var s = el("span"); s.style.background = c; sw.appendChild(s); });
+
+  var columns = list(data.columns);
+  var reqs = list(data.requirements);
+  var cells = list(data.cells);
+  var trees = list(data.trees);
+  function findCell(r, c) { return cells.filter(function (x) { return x.req === r && x.col === c; })[0]; }
+  function findTree(r, c) { return trees.filter(function (x) { return x.req === r && x.col === c; })[0]; }
+
+  // ヒートマップの表
+  var heat = document.getElementById("heat");
+  var head = el("tr");
+  head.appendChild(el("th", { "class": "req" }, "要件（重み）"));
+  columns.forEach(function (c) { head.appendChild(el("th", null, c)); });
+  head.appendChild(el("th", null, "詰まり"));
+  heat.appendChild(head);
+
+  var panel = document.getElementById("panel");
+  var selected = null;
+
+  reqs.forEach(function (r) {
+    var tr = el("tr");
+    tr.appendChild(el("th", { "class": "req" }, r.name + "（" + r.weight + "）"));
+    var minScore = null;
+    columns.forEach(function (c) {
+      var cell = findCell(r.id, c);
+      var td = el("td", { "class": "cell", tabindex: "0" });
+      if (!cell) {
+        td.className += " none";
+        td.textContent = "未";
+      } else if (cell.score === null || cell.score === undefined) {
+        td.className += " na";
+        td.textContent = "—";
+      } else {
+        var p = Math.max(0, Math.min(9, (Number(r.weight) || 1) * (3 - cell.score)));
+        td.style.background = scale[p];
+        td.style.color = p >= 6 ? "#ffffff" : "#1f2328";
+        td.textContent = cell.score;
+        td.title = "点数 " + cell.score + "／優先度 " + p;
+        if (minScore === null || cell.score < minScore) minScore = cell.score;
+      }
+      if (findTree(r.id, c)) td.className += " dug";
+      function open() { show(r, c, cell, td); }
+      td.addEventListener("click", open);
+      td.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+      tr.appendChild(td);
+    });
+    tr.appendChild(el("td", null, minScore === null ? "—" : minScore));
+    heat.appendChild(tr);
+  });
+
+  function renderNodes(nodes) {
+    var ul = el("ul");
+    list(nodes).forEach(function (n) {
+      var li = el("li");
+      li.appendChild(document.createTextNode(n.text || ""));
+      li.appendChild(tag(n.tag));
+      if (n.stop) li.appendChild(stop(n.stop));
+      if (n.ifFalse) li.appendChild(el("span", { "class": "iffalse" }, "これが嘘だったら：" + n.ifFalse));
+      if (list(n.children).length) li.appendChild(renderNodes(n.children));
+      ul.appendChild(li);
+    });
+    return ul;
+  }
+
+  function show(r, c, cell, td) {
+    if (selected) selected.classList.remove("sel");
+    selected = td; td.classList.add("sel");
+    panel.innerHTML = "";
+    panel.appendChild(el("h3", null, r.name + " × " + c));
+    if (!cell) {
+      panel.appendChild(el("p", { "class": "empty" }, "このマスはまだ点数を付けていません。"));
+    } else {
+      var p = el("p");
+      p.appendChild(document.createTextNode((cell.score === null || cell.score === undefined ? "関係なし" : cell.score + " 点") + "：" + (cell.reason || "")));
+      p.appendChild(tag(cell.tag));
+      panel.appendChild(p);
+    }
+    var t = findTree(r.id, c);
+    if (t) {
+      panel.appendChild(el("div", { "class": "root" }, t.root));
+      var tree = renderNodes(t.nodes);
+      tree.className = "tree";
+      panel.appendChild(tree);
+    }
+  }
+
+  // ふつうの表を作る
+  function table(id, headers, rows) {
+    var t = document.getElementById(id);
+    if (!rows.length) { t.outerHTML = "<p class='meta'>まだありません。</p>"; return; }
+    var h = el("tr");
+    headers.forEach(function (x) { h.appendChild(el("th", null, x[0])); });
+    t.appendChild(h);
+    rows.forEach(function (row) {
+      var tr = el("tr");
+      headers.forEach(function (x) {
+        var td = el("td");
+        var v = row[x[1]];
+        if (x[1] === "tag") td.appendChild(tag(v));
+        else td.textContent = Array.isArray(v) ? v.join("、") : (v === undefined || v === null ? "" : v);
+        tr.appendChild(td);
+      });
+      t.appendChild(tr);
+    });
+  }
+
+  table("reqs", [["ID", "id"], ["要件", "name"], ["本当の目的", "purpose"], ["重み", "weight"], ["達成基準", "criterion"], ["札", "tag"]], reqs);
+  table("assets", [["区分", "category"], ["資産", "name"], ["状態", "state"], ["出どころ", "source"], ["札", "tag"]], list(data.assets));
+  table("assumptions", [["前提", "text"], ["札", "tag"], ["出た段", "where"], ["これが嘘だったら", "ifFalse"], ["確かめ方", "verify"]], list(data.assumptions));
+  table("options", [["案", "name"], ["使う事実", "facts"], ["外す前提", "drops"], ["費用", "cost"], ["危うさ", "risk"]], list(data.options));
+
+  var exp = document.getElementById("experiment");
+  if (data.experiment) {
+    [["確かめる前提", "assumption"], ["確かめ方", "method"], ["費用と日数", "cost"], ["成功の基準", "success"], ["失敗の基準", "failure"]].forEach(function (x) {
+      exp.appendChild(el("dt", null, x[0]));
+      exp.appendChild(el("dd", null, data.experiment[x[1]] || ""));
+    });
+  } else {
+    exp.outerHTML = "<p class='meta'>まだありません。</p>";
+  }
+
+  // 最初は、木のある最初のマスを開く
+  var first = document.querySelector("td.dug") || null;
+  if (first) first.click();
+})();
+</script>
+</body>
+</html>
