@@ -70,9 +70,9 @@ SKILL.md の「守ること」4 の詳細。次の言葉が要件・資産・根
 ## §4 可視化
 
 - ファイル形式では `assets/heatmap-template.html` を保存先に `heatmap.html` として写し、`<script id="data">` の JSON を差し替える（データの形は `heatmap-scoring.md`）。
-- 作ったらブラウザで開き、全マスに色か「—」が出ること、マスを押すと根拠と木が出ることを確かめる。
+- 作ったらブラウザで開き、全マスに色か「—」が出ること、マスを押すと根拠が出ることを確かめる。
 - 掘る候補は優先度の上位 1〜3 マス。候補ごとに「なぜここを掘るか」を 1 文添えて見せ、ユーザーに選んでもらう。
-- ステップ 5 の後、`trees` と `assumptions` を JSON に足して作り直す。ステップ 6・7 の後に `options` と `experiment` を足す。
+- ステップ 5 の後、`trees` と `assumptions` を JSON に足して作り直す。ステップ 6・7 の後に `options` と `experiment` を足し、案の材料にした枝に `used`、勧める案に `recommended` を付ける。最後に `summary`（結論の 3 項目）を書く。
 
 ## §6 再構築
 
