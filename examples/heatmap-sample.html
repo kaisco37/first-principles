@@ -1,9 +1,8 @@
 <!doctype html>
-<html lang="ja">
-<head>
+<html lang="ja"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>第一原理思考のヒートマップ</title>
+<title>展示ロボットが間に合わない理由（架空の例）</title>
 <style>
   :root {
     --bg: #ffffff;
@@ -75,36 +74,36 @@
 </head>
 <body>
 <main>
-  <h1 id="title"></h1>
-  <div class="meta" id="date"></div>
-  <p class="subject" id="subject"></p>
+  <h1 id="title">展示ロボットが間に合わない理由（架空の例）</h1>
+  <div class="meta" id="date">作成日 2026-11-09</div>
+  <p class="subject" id="subject">学園祭の展示ロボットを本番までに組み上げられない理由</p>
 
   <h2>ヒートマップ</h2>
   <div class="legend">
     <span>色＝優先度（重み ×（3 − 点数））</span>
-    <span class="swatches" id="swatches"></span>
+    <span class="swatches" id="swatches"><span style="background: rgb(255, 255, 255);"></span><span style="background: rgb(255, 241, 239);"></span><span style="background: rgb(255, 224, 219);"></span><span style="background: rgb(253, 201, 192);"></span><span style="background: rgb(251, 171, 158);"></span><span style="background: rgb(244, 136, 122);"></span><span style="background: rgb(232, 96, 79);"></span><span style="background: rgb(214, 62, 45);"></span><span style="background: rgb(189, 42, 28);"></span><span style="background: rgb(155, 28, 18);"></span></span>
     <span>0 → 9</span>
     <span>「—」＝関係なし</span>
     <span>斜線＝未評価</span>
     <span>● ＝なぜの木あり</span>
   </div>
-  <div class="scroll"><table class="heat" id="heat"></table></div>
-  <div class="panel" id="panel"><p class="empty">マスを押すと、根拠と「なぜ」の木が出ます。</p></div>
+  <div class="scroll"><table class="heat" id="heat"><tr><th class="req">要件（重み）</th><th>人</th><th>物</th><th>金</th><th>情報</th><th>時間</th><th>技術</th><th>関係</th><th>詰まり</th></tr><tr><th class="req">学園祭で展示ロボットを動かす（3）</th><td class="cell" tabindex="0" style="background: rgb(253, 201, 192); color: rgb(31, 35, 40);" title="点数 2／優先度 3">2</td><td class="cell" tabindex="0" style="background: rgb(232, 96, 79); color: rgb(255, 255, 255);" title="点数 1／優先度 6">1</td><td class="cell" tabindex="0" style="background: rgb(255, 255, 255); color: rgb(31, 35, 40);" title="点数 3／優先度 0">3</td><td class="cell na" tabindex="0">—</td><td class="cell dug sel" tabindex="0" style="background: rgb(232, 96, 79); color: rgb(255, 255, 255);" title="点数 1／優先度 6">1</td><td class="cell" tabindex="0" style="background: rgb(253, 201, 192); color: rgb(31, 35, 40);" title="点数 2／優先度 3">2</td><td class="cell" tabindex="0" style="background: rgb(255, 255, 255); color: rgb(31, 35, 40);" title="点数 3／優先度 0">3</td><td>1</td></tr><tr><th class="req">来場者が自分で操作できる（2）</th><td class="cell" tabindex="0" style="background: rgb(251, 171, 158); color: rgb(31, 35, 40);" title="点数 1／優先度 4">1</td><td class="cell" tabindex="0" style="background: rgb(255, 224, 219); color: rgb(31, 35, 40);" title="点数 2／優先度 2">2</td><td class="cell" tabindex="0" style="background: rgb(255, 224, 219); color: rgb(31, 35, 40);" title="点数 2／優先度 2">2</td><td class="cell" tabindex="0" style="background: rgb(251, 171, 158); color: rgb(31, 35, 40);" title="点数 1／優先度 4">1</td><td class="cell" tabindex="0" style="background: rgb(255, 224, 219); color: rgb(31, 35, 40);" title="点数 2／優先度 2">2</td><td class="cell" tabindex="0" style="background: rgb(232, 96, 79); color: rgb(255, 255, 255);" title="点数 0／優先度 6">0</td><td class="cell na" tabindex="0">—</td><td>0</td></tr><tr><th class="req">展示の説明パネルを置く（1）</th><td class="cell" tabindex="0" style="background: rgb(255, 255, 255); color: rgb(31, 35, 40);" title="点数 3／優先度 0">3</td><td class="cell" tabindex="0" style="background: rgb(255, 255, 255); color: rgb(31, 35, 40);" title="点数 3／優先度 0">3</td><td class="cell" tabindex="0" style="background: rgb(255, 241, 239); color: rgb(31, 35, 40);" title="点数 2／優先度 1">2</td><td class="cell" tabindex="0" style="background: rgb(255, 241, 239); color: rgb(31, 35, 40);" title="点数 2／優先度 1">2</td><td class="cell" tabindex="0" style="background: rgb(255, 255, 255); color: rgb(31, 35, 40);" title="点数 3／優先度 0">3</td><td class="cell na" tabindex="0">—</td><td class="cell na" tabindex="0">—</td><td>2</td></tr></table></div>
+  <div class="panel" id="panel"><h3>学園祭で展示ロボットを動かす × 時間</h3><p>1 点：組み立てに 20 時間要るが、部品が届いてから本番までに使えるのは 12 時間<span class="tag 推測">推測</span></p><div class="root">なぜ『学園祭で展示ロボットを動かす』に対して『時間』が 1 点しかないのか</div><ul class="tree"><li>組み立ての開始が 11-20 になる<span class="tag 事実">事実</span><ul><li>全部品が届くのを待ってから組む予定だから<span class="tag 慣習">慣習</span><span class="stop 選択">止める：選択</span><span class="iffalse">これが嘘だったら：届いた部品から組めば、開始が 1 週間早まる</span></li></ul></li><li>平日の作業時間が 1 日 1 時間以下<span class="tag 申告">申告</span><ul><li>平日は授業と課題で埋まっている<span class="tag 申告">申告</span><span class="stop 外部">止める：外部</span></li></ul></li><li>組み立てに 20 時間要ると見積もっている<span class="tag 推測">推測</span><ul><li>去年の組み立てにかかった時間をもとにしたが、去年は車体を一から作った<span class="tag 推測">推測</span><span class="stop 選択">止める：選択</span><span class="iffalse">これが嘘だったら：車体を去年の物から流用すれば、組み立ては 12 時間で済む</span></li></ul></li></ul></div>
 
   <h2>要件</h2>
-  <div class="scroll"><table id="reqs"></table></div>
+  <div class="scroll"><table id="reqs"><tr><th>ID</th><th>要件</th><th>本当の目的</th><th>重み</th><th>達成基準</th><th>札</th></tr><tr><td>r1</td><td>学園祭で展示ロボットを動かす</td><td>来場者に動く様子を見てもらい、来年の部員を集める</td><td>3</td><td>本番の 2 日間、ロボットが障害物を避けて走り続ける</td><td><span class="tag 申告">申告</span></td></tr><tr><td>r2</td><td>来場者が自分で操作できる</td><td>触って遊べると、立ち止まる人が増える</td><td>2</td><td>初めての人が説明なしで 1 分以内に走らせられる</td><td><span class="tag 推測">推測</span></td></tr><tr><td>r3</td><td>展示の説明パネルを置く</td><td>部の活動の中身を知ってもらう</td><td>1</td><td>A1 のパネル 1 枚を本番の前日までに刷る</td><td><span class="tag 申告">申告</span></td></tr></table></div>
 
   <h2>資産</h2>
-  <div class="scroll"><table id="assets"></table></div>
+  <div class="scroll"><table id="assets"><tr><th>区分</th><th>資産</th><th>状態</th><th>出どころ</th><th>札</th></tr><tr><td>人</td><td>部員 4 人（はんだ付けができるのは 1 人）</td><td>平日は 1 日 1 時間以下</td><td>部員の話</td><td><span class="tag 申告">申告</span></td></tr><tr><td>物</td><td>Raspberry Pi 5・モーター 2 個</td><td>手元にある</td><td>注文履歴</td><td><span class="tag 事実">事実</span></td></tr><tr><td>物</td><td>車体の板・電池・距離センサー</td><td>11-20 に届く</td><td>注文履歴</td><td><span class="tag 事実">事実</span></td></tr><tr><td>金</td><td>部費の残り</td><td>1 万 2 千円</td><td>会計の記録</td><td><span class="tag 事実">事実</span></td></tr><tr><td>技術</td><td>去年のライントレースのプログラム</td><td>部のリポジトリにある。障害物を避ける処理はない</td><td>リポジトリ</td><td><span class="tag 事実">事実</span></td></tr></table></div>
 
   <h2>前提の台帳</h2>
-  <div class="scroll"><table id="assumptions"></table></div>
+  <div class="scroll"><table id="assumptions"><tr><th>前提</th><th>札</th><th>出た段</th><th>これが嘘だったら</th><th>確かめ方</th></tr><tr><td>部品は全部そろってから組むものだ</td><td><span class="tag 慣習">慣習</span></td><td>時間 › 1 本目の 2 段目</td><td>組み立ての開始が 1 週間早まる</td><td>手元の Pi とモーターだけで、走る動作を半日で試す</td></tr><tr><td>組み立てに 20 時間要る</td><td><span class="tag 推測">推測</span></td><td>時間 › 3 本目</td><td>車体を流用すれば 12 時間で済む</td><td>去年の車体にモーターが付くかを、部室で 30 分見る</td></tr></table></div>
 
   <h2>再構築案</h2>
-  <div class="scroll"><table id="options"></table></div>
+  <div class="scroll"><table id="options"><tr><th>案</th><th>使う事実</th><th>外す前提</th><th>費用</th><th>危うさ</th></tr><tr><td>届いた部品から組む</td><td>Pi とモーターは手元にある、工作室を前日まで借りられる</td><td>部品は全部そろってから組む</td><td>仮の配線を 1 回やり直す</td><td>後から届くセンサーの寸法が合わないと付け直し</td></tr><tr><td>去年の車体を流用する</td><td>去年の車体が部室にある</td><td>組み立てに 20 時間要る</td><td>0 円</td><td>新しいモーターが去年の車体に付かないかもしれない</td></tr></table></div>
 
   <h2>一番小さい検証</h2>
-  <dl class="exp" id="experiment"></dl>
+  <dl class="exp" id="experiment"><dt>確かめる前提</dt><dd>先に届いた部品だけで、走る動作を確かめられる</dd><dt>確かめ方</dt><dd>Pi とモーターだけを机の上でつなぎ、去年のプログラムで車輪が回るかを動かす</dd><dt>費用と日数</dt><dd>半日・追加費用 0 円</dd><dt>成功の基準</dt><dd>プログラムから左右の車輪の回る向きと速さを変えられる</dd><dt>失敗の基準</dt><dd>電池か車体がないと、モーターに十分な電気を送れないと分かる</dd></dl>
 </main>
 
 <!-- データは first-principles スキルが差し替える。形は references/heatmap-scoring.md を見る -->
@@ -454,6 +453,12 @@
   function text(id, value) { document.getElementById(id).textContent = value || ""; }
   function list(value) { return Array.isArray(value) ? value : []; }
 
+  // 描画済みの中身があれば消してから描く。JavaScript が動かない画面でも中身が見えるよう、描画後の HTML を書き出して配ることがあるため
+  ["swatches", "heat", "reqs", "assets", "assumptions", "options", "experiment"].forEach(function (id) {
+    var n = document.getElementById(id);
+    if (n) n.innerHTML = "";
+  });
+
   text("title", data.title);
   text("date", data.date ? "作成日 " + data.date : "");
   text("subject", data.subject);
@@ -550,6 +555,7 @@
   // ふつうの表を作る
   function table(id, headers, rows) {
     var t = document.getElementById(id);
+    if (!t) return;
     if (!rows.length) { t.outerHTML = "<p class='meta'>まだありません。</p>"; return; }
     var h = el("tr");
     headers.forEach(function (x) { h.appendChild(el("th", null, x[0])); });
@@ -573,7 +579,9 @@
   table("options", [["案", "name"], ["使う事実", "facts"], ["外す前提", "drops"], ["費用", "cost"], ["危うさ", "risk"]], list(data.options));
 
   var exp = document.getElementById("experiment");
-  if (data.experiment) {
+  if (!exp) {
+    // 描画済みの HTML で「まだありません。」に置き換わっている
+  } else if (data.experiment) {
     [["確かめる前提", "assumption"], ["確かめ方", "method"], ["費用と日数", "cost"], ["成功の基準", "success"], ["失敗の基準", "failure"]].forEach(function (x) {
       exp.appendChild(el("dt", null, x[0]));
       exp.appendChild(el("dd", null, data.experiment[x[1]] || ""));
@@ -587,5 +595,6 @@
   if (first) first.click();
 })();
 </script>
-</body>
-</html>
+
+
+</body></html>

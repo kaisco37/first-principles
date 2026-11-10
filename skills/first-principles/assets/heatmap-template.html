@@ -154,6 +154,12 @@
   function text(id, value) { document.getElementById(id).textContent = value || ""; }
   function list(value) { return Array.isArray(value) ? value : []; }
 
+  // 描画済みの中身があれば消してから描く。JavaScript が動かない画面でも中身が見えるよう、描画後の HTML を書き出して配ることがあるため
+  ["swatches", "heat", "reqs", "assets", "assumptions", "options", "experiment"].forEach(function (id) {
+    var n = document.getElementById(id);
+    if (n) n.innerHTML = "";
+  });
+
   text("title", data.title);
   text("date", data.date ? "作成日 " + data.date : "");
   text("subject", data.subject);
@@ -250,6 +256,7 @@
   // ふつうの表を作る
   function table(id, headers, rows) {
     var t = document.getElementById(id);
+    if (!t) return;
     if (!rows.length) { t.outerHTML = "<p class='meta'>まだありません。</p>"; return; }
     var h = el("tr");
     headers.forEach(function (x) { h.appendChild(el("th", null, x[0])); });
@@ -273,7 +280,9 @@
   table("options", [["案", "name"], ["使う事実", "facts"], ["外す前提", "drops"], ["費用", "cost"], ["危うさ", "risk"]], list(data.options));
 
   var exp = document.getElementById("experiment");
-  if (data.experiment) {
+  if (!exp) {
+    // 描画済みの HTML で「まだありません。」に置き換わっている
+  } else if (data.experiment) {
     [["確かめる前提", "assumption"], ["確かめ方", "method"], ["費用と日数", "cost"], ["成功の基準", "success"], ["失敗の基準", "failure"]].forEach(function (x) {
       exp.appendChild(el("dt", null, x[0]));
       exp.appendChild(el("dd", null, data.experiment[x[1]] || ""));
