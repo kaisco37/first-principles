@@ -4,7 +4,7 @@ description: >-
   達成したい要件と今ある資産を棚卸しし、不足をヒートマップで見える形にしたうえで、うまくいかない理由を前提から疑う「なぜ」の木で第一原理まで遡り、動かせない事実だけからやり方を組み直す。第一原理思考で考えたい、第一原理まで遡って原因を知りたいと頼まれたときに使う。コードの不具合の原因調査には使わない。
 metadata:
   author: kaisco37
-  version: 1.0.0
+  version: 1.0.1
   category: planning
   tags: [first-principles, five-whys, gap-analysis, heatmap, root-cause]
 ---

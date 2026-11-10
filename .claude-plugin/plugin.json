@@ -1,7 +1,7 @@
 {
   "name": "first-principles",
   "description": "要件と資産の不足をヒートマップで見せ、うまくいかない理由を前提から疑う「なぜ」の木で第一原理まで遡り、事実だけからやり方を組み直す思考スキル",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": { "name": "kaisco37" },
   "homepage": "https://github.com/kaisco37/first-principles",
   "repository": "https://github.com/kaisco37/first-principles",
