@@ -80,8 +80,13 @@
   table.heat th, table.heat td { border: 1px solid var(--line); padding: 6px 8px; text-align: center; vertical-align: middle; }
   table.heat th { background: var(--soft); font-weight: 600; white-space: nowrap; }
   table.heat th.req { text-align: left; white-space: normal; min-width: 180px; }
-  table.heat td.cell { min-width: 64px; height: 52px; cursor: pointer; font-weight: 700; font-size: 16px; position: relative; }
-  table.heat td.cell:focus, table.heat td.cell.sel { outline: 3px solid var(--ink); outline-offset: -3px; }
+  table.heat td.cell { min-width: 64px; height: 52px; padding: 0; font-weight: 700; font-size: 16px; position: relative; }
+  table.heat td.cell:hover { outline: 2px solid var(--ink); outline-offset: -2px; }
+  .cellink { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 52px; cursor: pointer; }
+  /* マスを押すと根拠が切り替わる。JavaScript を使わず、ラジオボタンと CSS だけで切り替える */
+  .whys > input { display: none; }
+  .whys > .panel { display: none; }
+  .whys > input:checked + .panel { display: block; }
   table.heat td.na { color: var(--muted); background: #fafafa; font-weight: 400; }
   table.heat td.none { background: repeating-linear-gradient(45deg, #f0f0f0 0 6px, #ffffff 6px 12px); color: var(--muted); font-weight: 400; }
   .dug::after { content: "●"; position: absolute; top: 2px; right: 4px; font-size: 10px; }
@@ -136,6 +141,7 @@
     h2 { break-after: avoid; }
   }
 </style>
+<style id="selstyle"></style>
 </head>
 <body>
 <main>
@@ -161,32 +167,31 @@
   <div class="assetgrid" id="assets"></div>
 
   <h2>3. ヒートマップ</h2>
-  <p class="lead">要件ごとに、各区分の資産がどれだけ足りているか（0〜3 点）。色が濃いマスほど先に手を付ける。マスを押すと点数の根拠が出る。</p>
+  <p class="lead">要件ごとに、各区分の資産がどれだけ足りているかを 0〜3 点で付けた。マスを押すと、その点数にした根拠が表の下に出る。</p>
   <div class="legend">
-    <span>色＝優先度（重み ×（3 − 点数））</span>
+    <span>色が濃いほど先に手を付ける（必須の要件ほど、点数が低いほど濃い）</span>
     <span class="swatches" id="swatches"></span>
-    <span>0 → 9</span>
-    <span>「—」＝関係なし</span>
-    <span>斜線＝未評価</span>
-    <span>● ＝ 4 になぜの木がある</span>
+    <span>「—」＝この要件には関係ない</span>
+    <span>斜線＝まだ点数を付けていない</span>
+    <span>● ＝ 4 で理由をさかのぼった</span>
   </div>
   <div class="scroll"><table class="heat" id="heat"></table></div>
-  <div class="panel" id="panel"><p class="meta">マスを押すと、点数の根拠が出ます。</p></div>
+  <div class="whys" id="whys"></div>
 
   <h2>4. なぜの木</h2>
-  <p class="lead">足りないマスについて、上から下へ「なぜ」を重ねて遡った。列の一番下が止めた所。「変えられる」に着いた枝が、やり方を変える材料になる。</p>
+  <p class="lead">一番足りないマスについて、「なぜ」を上から下へ重ねた。各列の一番下が、それ以上さかのぼれない所。赤い所は自分たちで決めていることなので、変えられる。</p>
   <div id="trees"></div>
 
-  <h2>5. 前提の台帳</h2>
-  <p class="lead">なぜの木の途中で出た、まだ確かめていない前提。外れていたら結論が変わる。</p>
+  <h2>5. 確かめていない前提</h2>
+  <p class="lead">4 の途中で出てきた、まだ確かめていない思い込み。違っていたら、やり方が変わる。</p>
   <div class="cards" id="assumptions"></div>
 
-  <h2>6. 再構築案</h2>
-  <p class="lead">確かめた事実と動かせない制約だけを材料に、前提を 1 つ外して組み直したやり方。</p>
+  <h2>6. 組み直したやり方</h2>
+  <p class="lead">確かめた事実と、変えられない条件だけを材料にして、前提を 1 つやめたやり方。</p>
   <div class="optgrid" id="options"></div>
 
   <h2>7. 一番小さい検証</h2>
-  <p class="lead">選んだ案が頼っている前提のうち、一番自信のないものを安く確かめる。</p>
+  <p class="lead">選んだやり方が頼っている前提のうち、一番自信のないものを、安く早く確かめる。</p>
   <div id="experiment"></div>
 </main>
 
@@ -222,7 +227,12 @@
   // 優先度 0〜9 を白から赤の色に変える
   var scale = ["#ffffff", "#fff1ef", "#ffe0db", "#fdc9c0", "#fbab9e", "#f4887a", "#e8604f", "#d63e2d", "#bd2a1c", "#9b1c12"];
   var WEIGHT = { 3: "必須", 2: "重要", 1: "あれば良い" };
-  var STOP = { "物理": "物理（動かせない）", "外部": "外部（変えられない）", "選択": "選択（変えられる）" };
+  // なぜの列の一番下に出す言葉。データの stop の値ごとに、平たく言い換える
+  var END = {
+    "選択": "自分たちで決めていること。変えられる",
+    "外部": "外で決まっていること。自分たちでは変えられない",
+    "物理": "物やお金の限り。変えられない"
+  };
 
   function el(name, cls, value) {
     var n = document.createElement(name);
@@ -288,7 +298,7 @@
   var sumBox = box("summary");
   [
     ["一番足りない所", sm.bottleneck || (top ? top.r.name + " × " + top.c + "：" + top.cell.score + " 点" : ""), sm.detail || (top ? top.cell.reason : ""), null],
-    ["遡って着いた前提", premise, sm.premiseDetail || (premiseInfo && premiseInfo.ifFalse ? "嘘なら → " + premiseInfo.ifFalse : ""), sm.premiseTag || (premiseInfo && premiseInfo.tag)],
+    ["遡って着いた前提", premise, sm.premiseDetail || (premiseInfo && premiseInfo.ifFalse ? "変えたら → " + premiseInfo.ifFalse : ""), sm.premiseTag || (premiseInfo && premiseInfo.tag)],
     ["次にやること", sm.next || (ex ? ex.method : ""), sm.nextDetail || (ex ? ex.cost : ""), null]
   ].forEach(function (x) {
     var c = add(sumBox, el("div", "sum"));
@@ -356,61 +366,73 @@
   var head = add(heat, el("tr"));
   add(head, el("th", "req", "要件（重み）"));
   columns.forEach(function (c) { add(head, el("th", null, c)); });
-  add(head, el("th", null, "詰まり"));
+  add(head, el("th", null, "一番低い点"));
 
-  var panel = document.getElementById("panel");
-  var selected = null;
+  // マスごとの根拠は、全部を先に書き出しておき、押されたマスの分だけ CSS で見せる
+  var whys = box("whys");
+  var selCss = [];
+  var k = 0;
+  var firstDug = null;
 
-  function show(r, c, cell, td) {
-    if (selected) selected.classList.remove("sel");
-    selected = td;
-    td.classList.add("sel");
-    panel.innerHTML = "";
+  function why(r, c, cell, id) {
+    var radio = add(whys, el("input"));
+    radio.type = "radio";
+    radio.name = "why";
+    radio.id = id;
+    var panel = add(whys, el("div", "panel"));
     add(panel, el("h3", null, r.name + " × " + c));
     if (!cell) {
       add(panel, el("p", "meta", "このマスはまだ点数を付けていません。"));
     } else {
       var p = add(panel, el("p"));
-      p.appendChild(document.createTextNode((hasScore(cell) ? cell.score + " 点" : "関係なし") + "：" + (cell.reason || "")));
+      p.appendChild(document.createTextNode((hasScore(cell) ? cell.score + " 点。" : "この要件には関係ない。") + (hasScore(cell) ? cell.reason || "" : "")));
       p.appendChild(tag(cell.tag));
-      if (hasScore(cell)) add(panel, el("p", "meta", "優先度 " + priority(r, cell)));
     }
     var ti = treeIndex(r.id, c);
     if (ti >= 0) {
-      var a = add(panel, el("a", "jump", "このマスのなぜの木を見る（4 へ）"));
+      var a = add(panel, el("a", "jump", "なぜ足りないのかを 4 で見る"));
       a.href = "#tree-" + ti;
     }
+    return radio;
   }
 
   reqs.forEach(function (r) {
     var tr = add(heat, el("tr"));
-    add(tr, el("th", "req", r.name + "（" + r.weight + "）"));
+    add(tr, el("th", "req", r.name + "（" + (WEIGHT[r.weight] || r.weight) + "）"));
     var minScore = null;
     columns.forEach(function (c) {
       var cell = findCell(r.id, c);
+      var id = "why-" + (k++);
       var td = add(tr, el("td", "cell"));
-      td.setAttribute("tabindex", "0");
+      var lab = add(td, el("label", "cellink"));
+      lab.setAttribute("for", id);
       if (!cell) {
         td.className += " none";
-        td.textContent = "未";
+        lab.textContent = "未";
       } else if (!hasScore(cell)) {
         td.className += " na";
-        td.textContent = "—";
+        lab.textContent = "—";
       } else {
         var p = priority(r, cell);
         td.style.background = scale[p];
         td.style.color = p >= 6 ? "#ffffff" : "#1f2328";
-        td.textContent = cell.score;
-        td.title = "点数 " + cell.score + "／優先度 " + p;
+        lab.textContent = cell.score;
         if (minScore === null || cell.score < minScore) minScore = cell.score;
       }
-      if (treeIndex(r.id, c) >= 0) td.className += " dug";
-      function open() { show(r, c, cell, td); }
-      td.addEventListener("click", open);
-      td.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+      td.title = cell ? (hasScore(cell) ? cell.score + " 点。" + (cell.reason || "") : "この要件には関係ない") : "まだ点数を付けていない";
+      var radio = why(r, c, cell, id);
+      if (treeIndex(r.id, c) >= 0) {
+        td.className += " dug";
+        if (!firstDug) firstDug = radio;
+      }
+      selCss.push("main:has(#" + id + ":checked) label[for=" + id + "]{outline:3px solid #1f2328;outline-offset:-3px}");
     });
     add(tr, el("td", null, minScore === null ? "—" : minScore));
   });
+  // 最初は、理由をさかのぼったマスの根拠を開いておく
+  var firstRadio = firstDug || whys.querySelector("input");
+  if (firstRadio) firstRadio.setAttribute("checked", "checked");
+  box("selstyle").textContent = selCss.join("\n");
 
   // 4. なぜの木：枝ごとに縦の列にし、上から下へ遡る
   function step(n) {
@@ -424,7 +446,7 @@
     add(w, step(n));
     var kids = list(n.children);
     if (kids.length) {
-      if (n.ifFalse) add(w, el("p", "iffalse", "嘘なら → " + n.ifFalse));
+      if (n.ifFalse) add(w, el("p", "iffalse", "違っていたら → " + n.ifFalse));
       add(w, el("div", "why", "↓ なぜ"));
       if (kids.length === 1) {
         add(w, chain(kids[0]));
@@ -435,8 +457,8 @@
     } else {
       add(w, el("div", "why", "↓"));
       var e = add(w, el("div", "end " + (n.stop ? "s-" + n.stop : "open")));
-      add(e, el("div", "endk", n.stop ? "止める：" + (STOP[n.stop] || n.stop) : "まだ止める条件に着いていない"));
-      if (n.ifFalse) add(e, el("div", null, "嘘なら → " + n.ifFalse));
+      add(e, el("div", "endk", n.stop ? END[n.stop] || n.stop : "まだ、さかのぼりきっていない"));
+      if (n.ifFalse) add(e, el("div", null, (n.stop === "選択" ? "変えたら → " : "違っていたら → ") + n.ifFalse));
     }
     return w;
   }
@@ -451,7 +473,7 @@
     var br = add(b, el("div", "branches"));
     list(t.nodes).forEach(function (n, j) {
       var col = add(br, el("div", "branch" + (n.used ? " used" : "")));
-      add(col, el("p", "blabel", "枝 " + (j + 1) + (n.used ? "・案に使った" : "")));
+      add(col, el("p", "blabel", "理由 " + (j + 1) + (n.used ? "（6 のやり方のもとにした）" : "")));
       add(col, chain(n));
     });
   });
@@ -464,8 +486,8 @@
     var h = add(c, el("div", "cardhead"));
     add(h, el("h3", null, "「" + (a.text || "") + "」"));
     h.appendChild(tag(a.tag));
-    line(c, "出た所", a.where);
-    line(c, "嘘だったら", a.ifFalse);
+    line(c, "4 のどこで出たか", a.where);
+    line(c, "違っていたら", a.ifFalse);
     line(c, "確かめ方", a.verify);
   });
 
@@ -476,14 +498,14 @@
     var c = add(opBox, el("div", "card opt" + (o.recommended ? " rec" : "")));
     if (o.recommended) add(c, el("span", "badge", "勧め"));
     add(c, el("h3", null, o.name));
-    line(c, "外す前提", o.drops ? "「" + o.drops + "」" : "");
+    line(c, "やめる前提", o.drops ? "「" + o.drops + "」" : "");
     line(c, "使う事実", o.facts);
     line(c, "費用", o.cost);
-    line(c, "危うさ", o.risk);
-    line(c, "上がるマス", o.raises);
+    line(c, "うまくいかないとき", o.risk);
+    line(c, "良くなる所", o.raises);
   });
 
-  // 7. 一番小さい検証：外す前提 → 選んだ案 → 検証、の流れで見せる
+  // 7. 一番小さい検証：やめる前提 → 選んだやり方 → 確かめ方、の流れで見せる
   var exBox = box("experiment");
   if (!ex) {
     none(exBox);
@@ -496,19 +518,19 @@
     var flow = add(exBox, el("div", "flow"));
     if (chosen) {
       var b1 = add(flow, el("div", "fbox"));
-      add(b1, el("span", "k", "外す前提"));
+      add(b1, el("span", "k", "やめる前提"));
       var t1 = add(b1, el("p", null, chosen.drops || ""));
       var at = findAssumption(chosen.drops);
       if (at) t1.appendChild(tag(at.tag));
       add(flow, el("div", "farrow", "→"));
       var b2 = add(flow, el("div", "fbox rec"));
-      add(b2, el("span", "k", "選んだ案"));
+      add(b2, el("span", "k", "選んだやり方"));
       add(b2, el("p", null, chosen.name));
       if (chosen.raises) add(b2, el("p", "meta", chosen.raises));
       add(flow, el("div", "farrow", "→"));
     }
     var b3 = add(flow, el("div", "fbox"));
-    add(b3, el("span", "k", "一番小さい検証"));
+    add(b3, el("span", "k", "確かめ方"));
     add(b3, el("p", null, ex.method || ""));
     if (ex.cost) add(b3, el("p", "meta", ex.cost));
     var oc = add(exBox, el("div", "outcomes"));
@@ -520,9 +542,6 @@
     });
   }
 
-  // 最初は、木のある最初のマスを開く
-  var first = document.querySelector("td.dug");
-  if (first) first.click();
 })();
 </script>
 </body>
